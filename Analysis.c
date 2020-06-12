@@ -188,8 +188,11 @@ void prn_symbol() {
       strcpy(type, "float");
     else
       strcpy(type, "char");
-    printf("|%20s\t|%20s\t|%20d\t|%20s\t|%20d\t|\n", symbolTable.symbols[i].name,
-           symbolTable.symbols[i].alias, symbolTable.symbols[i].level, type,
+    printf("|%20s\t|%20s\t|%20d\t|%20s\t|%20d\t|\n",
+           symbolTable.symbols[i].name,
+           symbolTable.symbols[i].alias,
+           symbolTable.symbols[i].level,
+           symbolTable.symbols[i].flag == 'A' ? strcats(type, "[]") : type,
            symbolTable.symbols[i].offset);
   }
   printf(
@@ -456,7 +459,7 @@ void semantic_Analysis(struct node *T) {
           T->code = merge(2, T->code, T->ptr[1]->code);
         }
         // printf("\n出\n");
-        //prn_symbol();
+        prn_symbol();
         // prnIR(T->code);
         // printf("**出**\n"); */ //c在退出一个复合语句前显示的符号表
         LEV--;  //出复合语句，层号减1
@@ -496,7 +499,6 @@ void semantic_Analysis(struct node *T) {
           width = 1;
         else
           width = 4;
-        // width=T->ptr[1]->type==INT?4:FLOAT?4:CHAR?1:8;  //一个变量宽度
         while (T0) {  //处理所有VARDEC_LIST结点
           num++;
           T0->ptr[0]->type = T0->type;  //类型属性向下传递
@@ -523,6 +525,7 @@ void semantic_Analysis(struct node *T) {
                              "变量重复定义");
             else
               T0->ptr[0]->place = rtn;
+
             T->width += width;
             rtn = fillSymbolTable(T0->ptr[0]->type_id, createAlias(), LEV,
                                   T0->ptr[0]->type, 'A',
@@ -711,7 +714,7 @@ void semantic_Analysis(struct node *T) {
       case INT:
       case FLOAT:
       case CHAR:
-      case ASSIGNOP:  //
+      case ASSIGNOP:
       case AND:
       case OR:
       case RELOP:
