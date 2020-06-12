@@ -32,7 +32,7 @@ struct node{
     int type;       //结点对应的值的类型
     int num;        //记录子结点个数（包括自己）
     int offset;     //偏移量
-    int width;                     //占数据字节数
+    int width;       //占数据字节数
     int return_num;
     int break_num;
 };

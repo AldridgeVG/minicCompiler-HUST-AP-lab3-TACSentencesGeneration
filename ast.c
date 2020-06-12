@@ -62,6 +62,7 @@ void display(struct node *T, int indent) {
         break;
       case ARRAY:
         strcpy(T->scope, T->parent->scope);
+        T->width = T->size * (T->type_id == 'char'?1:4);
         printf("%*c%s[] %d\n", indent, ' ', T->type_id, T->size);
         break;
       case ARRAY_CALL:
@@ -365,7 +366,7 @@ void udisplay(struct node *T, int indent) {
         break;
       case ARRAY:
         strcpy(T->scope, T->parent->scope);
-
+        T->width = T->size * (T->type_id == 'char'?1:4);
         break;
       case ARRAY_CALL:
         strcpy(T->scope, T->parent->scope);

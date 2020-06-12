@@ -266,6 +266,7 @@ void ext_var_list(struct node *T) {
       else {
         T->place = rtn;
         T->num = 1;
+        
       }
       break;
     case ARRAY:
@@ -459,7 +460,7 @@ void semantic_Analysis(struct node *T) {
           T->code = merge(2, T->code, T->ptr[1]->code);
         }
         // printf("\n出\n");
-        prn_symbol();
+       // prn_symbol();
         // prnIR(T->code);
         // printf("**出**\n"); */ //c在退出一个复合语句前显示的符号表
         LEV--;  //出复合语句，层号减1
@@ -516,9 +517,9 @@ void semantic_Analysis(struct node *T) {
             else
               T0->ptr[0]->place = rtn;
             T->width += width;
-          } else if (T0->ptr[0]->nodeKind == ARRAY) {  ////?????数组待补
+          } else if (T0->ptr[0]->nodeKind == ARRAY) { 
             rtn = fillSymbolTable(
-                T0->ptr[0]->type_id, createAlias(), LEV, T0->ptr[0]->type, 'V',
+                T0->ptr[0]->type_id, createAlias(), LEV, T0->ptr[0]->type, 'A',
                 T->offset + T->width);  //此处偏移量未计算，暂时为0
             if (rtn == -1)
               semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,
@@ -526,7 +527,9 @@ void semantic_Analysis(struct node *T) {
             else
               T0->ptr[0]->place = rtn;
 
-            T->width += width;
+
+            T->width += width * T0->ptr[0]->size;
+
             rtn = fillSymbolTable(T0->ptr[0]->type_id, createAlias(), LEV,
                                   T0->ptr[0]->type, 'A',
                                   T->offset + T->width);  //最后一个变量名

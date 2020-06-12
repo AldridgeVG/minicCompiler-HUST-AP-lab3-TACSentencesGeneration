@@ -1,8 +1,8 @@
 int cjt1,cjt2;
-float cjt3[3];
-char cjt4;
+char cjt3;
 int test(int a)
 {
+  int cjt4[25];
   int a1,a2=1;
   a1=1;
   a1=a1/a2;
