@@ -169,55 +169,32 @@ void semantic_error(int line, char *msg1, char *msg2) {
 //显示符号表
 void prn_symbol() {
   int i = 0;
+  char type[7];
   printf(
       "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-      "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-  printf("|%25s\t|", "VNAME");
-  printf("%25s\t|", "LEVEL");
-  printf("%25s\t|", "VTYPE");
-  printf("%25s\t|\n", "DOMAIN");
+      "+++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+  printf("|%20s\t|", "VNAME");
+  printf("%20s\t|", "ALIAS");
+  printf("%20s\t|", "LEVEL");
+  printf("%20s\t|", "VTYPE");
+  printf("%20s\t|\n", "OFFSET");
   printf(
       "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-      "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-  //,"偏移量"
+      "+++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   for (i = 0; i < symbolTable.index; i++) {
-    if (!strcmp(symbolTable.symbols[i].name, "")) continue;
-    printf("|%25s\t", symbolTable.symbols[i].name);
-    printf("|%25d\t", symbolTable.symbols[i].level);
-    switch (symbolTable.symbols[i].type) {
-      case INT:
-        if (symbolTable.symbols[i].flag != 'A') {
-          printf("|%25s\t", "int");
-          break;
-        } else {
-          printf("|%25s\t", "int[]");
-          break;
-        }
-      case FLOAT:
-        if (symbolTable.symbols[i].flag != 'A') {
-          printf("|%25s\t", "float");
-          break;
-        } else {
-          printf("|%25s\t", "float[]");
-          break;
-        }
-      case CHAR:
-        if (symbolTable.symbols[i].flag != 'A') {
-          printf("|%25s\t", "char");
-          break;
-        } else {
-          printf("|%25s\t", "char[]");
-          break;
-        }
-    }
-    if (symbolTable.symbols[i].flag == 'F')
-      printf("|%25s\t|\n", "Func Name");
+    if (symbolTable.symbols[i].type == INT)
+      strcpy(type, "int");
+    else if (symbolTable.symbols[i].type == FLOAT)
+      strcpy(type, "float");
     else
-      printf("|%25s\t|\n", symbolTable.symbols[i].scope);
+      strcpy(type, "char");
+    printf("|%20s\t|%20s\t|%20d\t|%20s\t|%20d\t|\n", symbolTable.symbols[i].name,
+           symbolTable.symbols[i].alias, symbolTable.symbols[i].level, type,
+           symbolTable.symbols[i].offset);
   }
   printf(
       "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-      "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+      "+++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 
 //搜索符号表
@@ -230,7 +207,7 @@ int searchSymbolTable(char *name) {
 
 //填符号表
 int fillSymbolTable(char *name, char *alias, int level, int type, char flag,
-                    char *scope) {
+                    int offset) {
   int i;
   for (i = symbolTable.index - 1;
        symbolTable.symbols[i].level == level || (level == 0 && i >= 0); i--) {
@@ -242,22 +219,22 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag,
   //填写符号表内容
   strcpy(symbolTable.symbols[symbolTable.index].name, name);    //名
   strcpy(symbolTable.symbols[symbolTable.index].alias, alias);  //别名
-  strcpy(symbolTable.symbols[symbolTable.index].scope, scope);  //作用域
   symbolTable.symbols[symbolTable.index].level = level;         //层号
   symbolTable.symbols[symbolTable.index].type = type;           //类型
   symbolTable.symbols[symbolTable.index].flag = flag;           //标记
+  symbolTable.symbols[symbolTable.index].offset = offset;
   return symbolTable
       .index++;  //返回的是符号在符号表中的位置序号，中间代码生成时可用序号取到符号别名
 }
 
 //填写临时变量到符号表，返回临时变量在符号表中的位置
-int fill_Temp(char *name, int level, int type, char flag, char *scope) {
+int fill_Temp(char *name, int level, int type, char flag, int offset) {
   strcpy(symbolTable.symbols[symbolTable.index].name, "");
   strcpy(symbolTable.symbols[symbolTable.index].alias, name);
-  strcpy(symbolTable.symbols[symbolTable.index].scope, scope);
   symbolTable.symbols[symbolTable.index].level = level;
   symbolTable.symbols[symbolTable.index].type = type;
   symbolTable.symbols[symbolTable.index].flag = flag;
+  symbolTable.symbols[symbolTable.index].offset = offset;
   return symbolTable.index++;  //返回的是临时变量在符号表中的位置序号
 }
 
@@ -269,15 +246,18 @@ void ext_var_list(struct node *T) {
   int rtn, num = 1;
   switch (T->nodeKind) {
     case EXT_VARDEC_LIST:
-      T->ptr[0]->type = T->type;  //将类型属性向下传递变量结点
-      T->ptr[1]->type = T->type;  //将类型属性向下传递变量结点
+      T->ptr[0]->type = T->type;      //将类型属性向下传递变量结点
+      T->ptr[0]->offset = T->offset;  //外部变量的偏移量向下传递
+      T->ptr[1]->type = T->type;      //将类型属性向下传递变量结点
+      T->ptr[1]->offset = T->offset + T->width;  //外部变量的偏移量向下传递
+      T->ptr[1]->width = T->width;
       ext_var_list(T->ptr[0]);
       ext_var_list(T->ptr[1]);
       T->num = T->ptr[1]->num + 1;
       break;
     case ID:
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'V',
-                            T->scope);  //最后一个变量名
+                            T->offset);  //最后一个变量名
       if (rtn == -1)
         semantic_error(T->pos, T->type_id, "变量重复定义");  // 3. 重复变量名称
       else {
@@ -288,7 +268,7 @@ void ext_var_list(struct node *T) {
     case ARRAY:
       ///数组定义 的关于符号表的处理
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'A',
-                            T->scope);  //最后一个变量名
+                            T->offset);  //最后一个变量名
       if (rtn == -1)
         semantic_error(T->pos, T->type_id,
                        "变量名重复定义");  // 3.重复数组变量名称
@@ -803,7 +783,7 @@ void Exp(struct node *T) {
         break;
       case INT:
         T->place = fill_Temp(createTemp(), LEV, T->type, 'T',
-                             T->scope);  //为整常量生成一个临时变量
+                             T->offset);  //为整常量生成一个临时变量
         T->type = INT;
         opn1.kind = INT;
         opn1.const_int = T->type_int;
@@ -815,7 +795,7 @@ void Exp(struct node *T) {
         break;
       case FLOAT:
         T->place = fill_Temp(createTemp(), LEV, T->type, 'T',
-                             T->scope);  //为浮点常量生成一个临时变量
+                             T->offset);  //为浮点常量生成一个临时变量
         T->type = FLOAT;
         opn1.kind = FLOAT;
         opn1.const_float = T->type_float;
@@ -1397,10 +1377,10 @@ void boolExp(struct node *T) {
 
 void semantic_Analysis0(struct node *T) {
   symbolTable.index = 0;
-/*
-  symbolTable.symbols[0].paramnum = 0;  // read的形参个数
-  symbolTable.symbols[2].paramnum = 1;
-*/
+  /*
+    symbolTable.symbols[0].paramnum = 0;  // read的形参个数
+    symbolTable.symbols[2].paramnum = 1;
+  */
   symbol_scope_TX.TX[0] = 0;  //外部变量在符号表中的起始序号为0
   symbol_scope_TX.top = 1;
   T->offset = 0;  //外部变量在数据区的偏移量

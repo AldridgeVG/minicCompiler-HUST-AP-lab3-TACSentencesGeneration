@@ -65,7 +65,6 @@ struct symbol{
     int  paramnum;    //形参个数     
     char alias[10];      //别名，为解决嵌套层次使用，使得每一个数据名称唯一
     char flag;          //符号标记，函数：'F'  变量：'V'   参数：'P'  临时变量：'T'
-    char scope[50];
     int offset;      //外部变量和局部变量在其静态数据区或活动记录中的偏移量，
 //或记录函数活动记录大小，目标代码生成时使用
 };
@@ -89,11 +88,11 @@ char *createTemp();
 void semantic_error(int line,char *msg1,char *msg2);
 void prn_symbol();
 int searchSymbolTable(char *name);
-int fillSymbolTable(char *name,char *alias,int level,int type,char flag,char *scope);
-int fill_Temp(char *name,int level,int type,char flag,char *scope);
+int fillSymbolTable(char *name,char *alias,int level,int type,char flag,int offset);
+int fill_Temp(char *name,int level,int type,char flag,int offset);
 void ext_var_list(struct node *T); //未完
 int  match_param(int i,struct node *T);
-void udisplay(struct node *T, int indent);
+void objectCode(struct codenode *head);
 void semantic_Analysis(struct node *T);//未完
 void Exp(struct node *T);
 void boolExp(struct node *T);
