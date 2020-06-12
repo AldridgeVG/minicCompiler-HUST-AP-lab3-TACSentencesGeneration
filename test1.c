@@ -1,4 +1,6 @@
-int glb1,glb2;
+int cjt1,cjt2;
+float cjt3[3];
+char cjt4;
 int test(int a)
 {
   int a1,a2=1;
@@ -11,7 +13,7 @@ int test(int a)
   else
   {
     int j;
-    j=glb2;
+    j=cjt2;
   }
   return 0;
 }
@@ -21,7 +23,8 @@ int main()
   test(3);
   while(a2>0)
   {
-    int i=glb1;
+    int i=cjt1;
+    if(cjt1 == 0) continue;
     a1=3;
     break;
   }

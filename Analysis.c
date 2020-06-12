@@ -74,7 +74,7 @@ char *createLabel() {
   static int no = 1;
   char s[10];
   itoa(no++, s, 10);
-  return strcats("label", s);
+  return strcats("label-", s);
 }
 
 //生成一个临时变量的名字
@@ -456,7 +456,7 @@ void semantic_Analysis(struct node *T) {
           T->code = merge(2, T->code, T->ptr[1]->code);
         }
         // printf("\n出\n");
-        prn_symbol();
+        //prn_symbol();
         // prnIR(T->code);
         // printf("**出**\n"); */ //c在退出一个复合语句前显示的符号表
         LEV--;  //出复合语句，层号减1
