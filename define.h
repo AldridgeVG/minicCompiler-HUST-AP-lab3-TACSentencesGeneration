@@ -24,12 +24,15 @@ struct node{
     int size;         //记录数组的大小
     int index;      //记录数组的下标
     char scope[50]; //所属作用域
+    char Etrue[15],Efalse[15];       //对布尔表达式的翻译时，真假转移目标的标号
+    char Snext[15];               //结点对应语句S执行后的下一条语句位置标号
+    struct codenode *code;          //该结点中间代码链表头指针
     int level;      //层号
     int place;      //结点对应的变量/运算结果符号表的位置序号
     int type;       //结点对应的值的类型
     int num;        //记录子结点个数（包括自己）
     int offset;     //偏移量
-
+    int width;                     //占数据字节数
     int return_num;
     int break_num;
 };

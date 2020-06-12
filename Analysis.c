@@ -3,153 +3,164 @@
 /*---------------------------------------中间代码生成---------------------------------------*/
 
 //生成一条TAC代码的结点组成的双向循环链表，返回头指针
-struct codenode *genIR(int op,struct opn opn1,struct opn opn2,struct opn result){
-    struct codenode *h=(struct codenode *)malloc(sizeof(struct codenode));
-    h->op=op;
-    h->opn1=opn1;
-    h->opn2=opn2;
-    h->result=result;
-    h->next=h->prior=h;
-    return h;
+struct codenode *genIR(int op, struct opn opn1, struct opn opn2,
+                       struct opn result) {
+  struct codenode *h = (struct codenode *)malloc(sizeof(struct codenode));
+  h->op = op;
+  h->opn1 = opn1;
+  h->opn2 = opn2;
+  h->result = result;
+  h->next = h->prior = h;
+  return h;
 }
 
 //生成一条标号语句，返回头指针
-struct codenode *genLabel(char *label){
-    struct codenode *h=(struct codenode *)malloc(sizeof(struct codenode));
-    h->op=LABEL;
-    strcpy(h->result.id,label);
-    h->next=h->prior=h;
-    return h;
+struct codenode *genLabel(char *label) {
+  struct codenode *h = (struct codenode *)malloc(sizeof(struct codenode));
+  h->op = LABEL;
+  strcpy(h->result.id, label);
+  h->next = h->prior = h;
+  return h;
 }
 
 //生成GOTO语句，返回头指针
-struct codenode *genGoto(char *label){
-    struct codenode *h=(struct codenode *)malloc(sizeof(struct codenode));
-    h->op=GOTO;
-    strcpy(h->result.id,label);
-    h->next=h->prior=h;
-    return h;
+struct codenode *genGoto(char *label) {
+  struct codenode *h = (struct codenode *)malloc(sizeof(struct codenode));
+  h->op = GOTO;
+  strcpy(h->result.id, label);
+  h->next = h->prior = h;
+  return h;
 }
 
 //合并多个中间代码的双向循环链表，首尾相连
-struct codenode *merge(int num,...){
-    struct codenode *h1,*h2,*p,*t1,*t2;
-    va_list ap;
-    va_start(ap,num);
-    h1=va_arg(ap,struct codenode *);
-    while (--num>0) {
-        h2=va_arg(ap,struct codenode *);
-        if (h1==NULL) h1=h2;
-        else if (h2){
-            t1=h1->prior;
-            t2=h2->prior;
-            t1->next=h2;
-            t2->next=h1;
-            h1->prior=t2;
-            h2->prior=t1;
-            }
-        }
-    va_end(ap);
-    return h1;
+struct codenode *merge(int num, ...) {
+  struct codenode *h1, *h2, *p, *t1, *t2;
+  va_list ap;
+  va_start(ap, num);
+  h1 = va_arg(ap, struct codenode *);
+  while (--num > 0) {
+    h2 = va_arg(ap, struct codenode *);
+    if (h1 == NULL)
+      h1 = h2;
+    else if (h2) {
+      t1 = h1->prior;
+      t2 = h2->prior;
+      t1->next = h2;
+      t2->next = h1;
+      h1->prior = t2;
+      h2->prior = t1;
+    }
+  }
+  va_end(ap);
+  return h1;
 }
+
 //连接字符串
-char *strcats(char *s1, char *s2)
-{
-    static char result[10];
-    strcpy(result, s1);
-    strcat(result, s2);
-    return result;
+char *strcats(char *s1, char *s2) {
+  static char result[10];
+  strcpy(result, s1);
+  strcat(result, s2);
+  return result;
 }
 
 //生成新的别名，用于嵌套层次使用
-char *createAlias()
-{
-    static int no = 1;
-    char s[10];
-    itoa(no++, s, 10);
-    return strcats("v", s);
+char *createAlias() {
+  static int no = 1;
+  char s[10];
+  itoa(no++, s, 10);
+  return strcats("v", s);
 }
 char *createLabel() {
-    static int no=1;
-    char s[10];
-    itoa(no++,s,10);
-    return strcats("label",s);
+  static int no = 1;
+  char s[10];
+  itoa(no++, s, 10);
+  return strcats("label", s);
 }
 
 //生成一个临时变量的名字
-char *createTemp()
-{
-    static int no = 1;
-    char s[10];
-    itoa(no++, s, 10);
-    return strcats("tmp", s);
+char *createTemp() {
+  static int no = 1;
+  char s[10];
+  itoa(no++, s, 10);
+  return strcats("tmp", s);
 }
-
 
 //输出中间代码
-void prnIR(struct codenode *head){
-    char opnstr1[32],opnstr2[32],resultstr[32];
-    struct codenode *h=head;
-    do {
-        if (h->opn1.kind==INT)
-             sprintf(opnstr1,"#%d",h->opn1.const_int);
-        if (h->opn1.kind==FLOAT)
-             sprintf(opnstr1,"#%f",h->opn1.const_float);
-        if (h->opn1.kind==ID)
-             sprintf(opnstr1,"%s",h->opn1.id);
-        if (h->opn2.kind==INT)
-             sprintf(opnstr2,"#%d",h->opn2.const_int);
-        if (h->opn2.kind==FLOAT)
-             sprintf(opnstr2,"#%f",h->opn2.const_float);
-        if (h->opn2.kind==ID)
-             sprintf(opnstr2,"%s",h->opn2.id);
-        sprintf(resultstr,"%s",h->result.id);
-        switch (h->op) {
-            case ASSIGNOP:  printf("  %s := %s\n",resultstr,opnstr1);
-                            break;
-            case PLUS:
-            case MINUS:
-            case STAR:
-            case DIV: printf("  %s := %s %c %s\n",resultstr,opnstr1,h->op==PLUS?'+':h->op==MINUS?'-':h->op==STAR?'*':'\\',opnstr2);
-                      break;
-            case FUNCTION: printf("FUNC %s :\n",h->result.id);
-                           break;
-            case PARAM:    printf("  PARA %s\n",h->result.id);
-                           break;
-            case LABEL:    printf("LABEL %s :\n",h->result.id);
-                           break;
-            case GOTO:     printf("  GOTO %s\n",h->result.id);
-                           break;
-            case JLE:      printf("  IF %s <= %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case JLT:      printf("  IF %s < %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case JGE:      printf("  IF %s >= %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case JGT:      printf("  IF %s > %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case EQ:       printf("  IF %s == %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case NEQ:      printf("  IF %s != %s GOTO %s\n",opnstr1,opnstr2,resultstr);
-                           break;
-            case ARG:      printf("  ARG %s\n",h->result.id);
-                           break;
-            case CALL:     if (!strcmp(opnstr1,"write"))
-                                printf("  CALL  %s\n", opnstr1);
-                            else
-                                printf("  %s := CALL %s\n",resultstr, opnstr1);
-                           break;
-            case RETURN:   if (h->result.kind)
-                                printf("  RETURN %s\n",resultstr);
-                           else
-                                printf("  RETURN\n");
-                           break;
-
-        }
-    h=h->next;
-    } while (h!=head);
+void prnIR(struct codenode *head) {
+  char opnstr1[32], opnstr2[32], resultstr[32];
+  struct codenode *h = head;
+  do {
+    if (h->opn1.kind == INT) sprintf(opnstr1, "#%d", h->opn1.const_int);
+    if (h->opn1.kind == FLOAT) sprintf(opnstr1, "#%f", h->opn1.const_float);
+    if (h->opn1.kind == ID) sprintf(opnstr1, "%s", h->opn1.id);
+    if (h->opn2.kind == INT) sprintf(opnstr2, "#%d", h->opn2.const_int);
+    if (h->opn2.kind == FLOAT) sprintf(opnstr2, "#%f", h->opn2.const_float);
+    if (h->opn2.kind == ID) sprintf(opnstr2, "%s", h->opn2.id);
+    sprintf(resultstr, "%s", h->result.id);
+    switch (h->op) {
+      case ASSIGNOP:
+        printf("  %s := %s\n", resultstr, opnstr1);
+        break;
+      case PLUS:
+      case MINUS:
+      case STAR:
+      case DIV:
+        printf("  %s := %s %c %s\n", resultstr, opnstr1,
+               h->op == PLUS
+                   ? '+'
+                   : h->op == MINUS ? '-' : h->op == STAR ? '*' : '\\',
+               opnstr2);
+        break;
+      case FUNCTION:
+        printf("FUNC %s :\n", h->result.id);
+        break;
+      case PARAM:
+        printf("  PARA %s\n", h->result.id);
+        break;
+      case LABEL:
+        printf("LABEL %s :\n", h->result.id);
+        break;
+      case GOTO:
+        printf("  GOTO %s\n", h->result.id);
+        break;
+      case JLE:
+        printf("  IF %s <= %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case JLT:
+        printf("  IF %s < %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case JGE:
+        printf("  IF %s >= %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case JGT:
+        printf("  IF %s > %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case EQ:
+        printf("  IF %s == %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case NEQ:
+        printf("  IF %s != %s GOTO %s\n", opnstr1, opnstr2, resultstr);
+        break;
+      case ARG:
+        printf("  ARG %s\n", h->result.id);
+        break;
+      case CALL:
+        if (!strcmp(opnstr1, "write"))
+          printf("  CALL  %s\n", opnstr1);
+        else
+          printf("  %s := CALL %s\n", resultstr, opnstr1);
+        break;
+      case RETURN:
+        if (h->result.kind)
+          printf("  RETURN %s\n", resultstr);
+        else
+          printf("  RETURN\n");
+        break;
+    }
+    h = h->next;
+  } while (h != head);
 }
-/*-----------------------------------中间代码生成---------------------------------------------*/
+/*------------------------------------中间代码生成---------------------------------------------*/
 
 void semantic_error(int line, char *msg1, char *msg2) {
   printf("在%d行,%s %s\n", line, msg1, msg2);
@@ -158,8 +169,6 @@ void semantic_error(int line, char *msg1, char *msg2) {
 //显示符号表
 void prn_symbol() {
   int i = 0;
-  // printf("%6s %6s %6s  %6s %4s \n", "变量名", "别 名", "层 号", "类  型",
-  // "作用域");
   printf(
       "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
@@ -231,12 +240,12 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag,
     if (!strcmp(symbolTable.symbols[i].name, name)) return -1;
   }
   //填写符号表内容
-  strcpy(symbolTable.symbols[symbolTable.index].name, name);      //名
-  strcpy(symbolTable.symbols[symbolTable.index].alias, alias);          //别名
-  strcpy(symbolTable.symbols[symbolTable.index].scope, scope);     //作用域
-  symbolTable.symbols[symbolTable.index].level = level;                  //层号
-  symbolTable.symbols[symbolTable.index].type = type;                  //类型
-  symbolTable.symbols[symbolTable.index].flag = flag;                    //标记
+  strcpy(symbolTable.symbols[symbolTable.index].name, name);    //名
+  strcpy(symbolTable.symbols[symbolTable.index].alias, alias);  //别名
+  strcpy(symbolTable.symbols[symbolTable.index].scope, scope);  //作用域
+  symbolTable.symbols[symbolTable.index].level = level;         //层号
+  symbolTable.symbols[symbolTable.index].type = type;           //类型
+  symbolTable.symbols[symbolTable.index].flag = flag;           //标记
   return symbolTable
       .index++;  //返回的是符号在符号表中的位置序号，中间代码生成时可用序号取到符号别名
 }
@@ -250,28 +259,6 @@ int fill_Temp(char *name, int level, int type, char flag, char *scope) {
   symbolTable.symbols[symbolTable.index].type = type;
   symbolTable.symbols[symbolTable.index].flag = flag;
   return symbolTable.index++;  //返回的是临时变量在符号表中的位置序号
-}
-
-char *strcats(char *s1, char *s2) {
-  static char result[10];
-  strcpy(result, s1);
-  strcat(result, s2);
-  return result;
-}
-
-//创建v1-v10别名
-char *createAlias() {
-  static int no = 1;
-  char s[10];
-  itoa(no++, s, 10);
-  return strcats("v", s);
-}
-
-char *createTemp() {
-  static int no = 1;
-  char s[10];
-  itoa(no++, s, 10);
-  return strcats("temp", s);
 }
 
 int LEV = 0;    //层号
@@ -292,7 +279,7 @@ void ext_var_list(struct node *T) {
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'V',
                             T->scope);  //最后一个变量名
       if (rtn == -1)
-        semantic_error(T->pos, T->type_id, "变量重复定义");                                                               //3. 重复变量名称
+        semantic_error(T->pos, T->type_id, "变量重复定义");  // 3. 重复变量名称
       else {
         T->place = rtn;
         T->num = 1;
@@ -303,7 +290,8 @@ void ext_var_list(struct node *T) {
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'A',
                             T->scope);  //最后一个变量名
       if (rtn == -1)
-        semantic_error(T->pos, T->type_id, "变量名重复定义");                                                             //3.重复数组变量名称
+        semantic_error(T->pos, T->type_id,
+                       "变量名重复定义");  // 3.重复数组变量名称
       else if (T->size <= 0) {
         semantic_error(T->pos, T->type_id, "数组大小不能为负值或0");
       } else {
@@ -324,13 +312,13 @@ int match_param(int i, struct node *T) {
   for (j = 1; j <= num; j++) {
     //必须严格满足参数个数
     if (!T) {
-      semantic_error(pos, "", "函数调用参数太少");                                                                        //6. 参数不匹配系列
+      semantic_error(pos, "", "函数调用参数太少");  // 6. 参数不匹配系列
       return 0;
     }
     type1 = symbolTable.symbols[i + j].type;  //形参类型
     type2 = T->ptr[0]->type;                  //实参类型
     if (type1 != type2) {
-      semantic_error(pos, "", "参数类型不匹配");                                                                           //7. 实参形参类型不匹配
+      semantic_error(pos, "", "参数类型不匹配");  // 7. 实参形参类型不匹配
       return 0;
     }
     T = T->ptr[1];
@@ -344,7 +332,7 @@ int match_param(int i, struct node *T) {
 
 //对抽象语法树的先根遍历,按udisplay的控制结构修改完成符号表管理和语义检查
 
-struct node * curFunc;
+struct node *curFunc;
 
 void semantic_Analysis(struct node *T) {
   int rtn, num, width;
@@ -376,13 +364,14 @@ void semantic_Analysis(struct node *T) {
         semantic_Analysis(
             T->ptr[1]);  //处理函数名和参数结点部分，这里不考虑用寄存器传递参数
         T->ptr[2]->break_num = 0;
-        T->ptr[2]->return_num=0;
-        
+        T->ptr[2]->return_num = 0;
+
         curFunc = T;
         semantic_Analysis(T->ptr[2]);  //处理函数体结点
 
-        if(curFunc->ptr[2]->return_num == 0){
-          semantic_error(T->pos, T->ptr[1]->type_id, "函数无返回语句");                                                         //17.函数没有返回语句
+        if (curFunc->ptr[2]->return_num == 0) {
+          semantic_error(T->pos, T->ptr[1]->type_id,
+                         "函数无返回语句");  // 17.函数没有返回语句
         }
 
         //计算活动记录大小,这里offset属性存放的是活动记录大小，不是偏移
@@ -392,7 +381,8 @@ void semantic_Analysis(struct node *T) {
                               T->scope);  //函数不在数据区中分配单元，偏移量为0
 
         if (rtn == -1) {
-          semantic_error(T->pos, T->type_id, "函数名重复定义");                                                           //3. 重复函数名称
+          semantic_error(T->pos, T->type_id,
+                         "函数名重复定义");  // 3. 重复函数名称
           break;
         } else
           T->place = rtn;
@@ -419,7 +409,8 @@ void semantic_Analysis(struct node *T) {
         rtn = fillSymbolTable(T->ptr[1]->type_id, createAlias(), 1,
                               T->ptr[0]->type, 'P', T->scope);
         if (rtn == -1)
-          semantic_error(T->ptr[1]->pos, T->ptr[1]->type_id, "参数名重复定义");                                 //3. 重复参数名称
+          semantic_error(T->ptr[1]->pos, T->ptr[1]->type_id,
+                         "参数名重复定义");  // 3. 重复参数名称
         else
           T->ptr[1]->place = rtn;
         T->num = 1;  //参数个数计算的初始值
@@ -568,7 +559,7 @@ void semantic_Analysis(struct node *T) {
         semantic_Analysis(T->ptr[1]);
         break;
       case RETURN:
-      //curFunc永远指向当前函数名的节点，直接修改表示已存在返回语句
+        // curFunc永远指向当前函数名的节点，直接修改表示已存在返回语句
         curFunc->ptr[2]->return_num = 1;
         if (T->ptr[0]) {
           Exp(T->ptr[0]);
@@ -577,7 +568,8 @@ void semantic_Analysis(struct node *T) {
             num--;
           } while (symbolTable.symbols[num].flag != 'F');
           if (T->ptr[0]->type != symbolTable.symbols[num].type) {
-            semantic_error(T->pos, "返回值类型错误", "");                                                 //16. 返回值类型不匹配
+            semantic_error(T->pos, "返回值类型错误",
+                           "");  // 16. 返回值类型不匹配
             break;
           }
           result.kind = ID;
@@ -630,11 +622,11 @@ void Exp(struct node *T) {
       case ID:  //查符号表，获得符号表中的位置，类型送type
         rtn = searchSymbolTable(T->type_id);
         if (rtn == -1)
-          semantic_error(T->pos, T->type_id, "变量未定义");                                                           //1. 变量未定义
+          semantic_error(T->pos, T->type_id, "变量未定义");  // 1. 变量未定义
         else if (symbolTable.symbols[rtn].flag == 'F')
           semantic_error(T->pos, T->type_id, "是函数名，类型不匹配");
         else if (symbolTable.symbols[rtn].flag == 'A')
-          semantic_error(T->pos, T->type_id, "是数组变量,不匹配");                                                 
+          semantic_error(T->pos, T->type_id, "是数组变量,不匹配");
         else {
           T->place = rtn;  //结点保存变量在符号表中的位置
           T->type = symbolTable.symbols[rtn].type;
@@ -648,7 +640,8 @@ void Exp(struct node *T) {
         else if (symbolTable.symbols[rtn].flag == 'F')
           semantic_error(T->pos, T->type_id, "是函数名，不匹配");
         else if (symbolTable.symbols[rtn].flag == 'V')
-          semantic_error(T->pos, T->type_id, "不是数组变量");                                                       //8. 下标访问非数组
+          semantic_error(T->pos, T->type_id,
+                         "不是数组变量");  // 8. 下标访问非数组
         else {
           T->place = rtn;  //结点保存变量在符号表中的位置
           T->type = symbolTable.symbols[rtn].type;
@@ -685,7 +678,9 @@ void Exp(struct node *T) {
       case ASSIGNOP:
         if (T->ptr[0]->nodeKind != ID && T->ptr[0]->nodeKind != ARRAY_CALL &&
             T->ptr[0]->nodeKind != ARRAY) {
-          semantic_error(T->pos, "", "赋值语句需要左值");                                                                             //12. 赋值号左边非左值（var/arr/arr[]）
+          semantic_error(
+              T->pos, "",
+              "赋值语句需要左值");  // 12. 赋值号左边非左值（var/arr/arr[]）
         } else {
           Exp(T->ptr[0]);  //处理左值，例中仅为变量
           Exp(T->ptr[1]);
@@ -842,15 +837,20 @@ void Exp(struct node *T) {
         //自增自减非左值判断在词法分析阶段
       case SELFADD:
         if (T->ptr[0]) {
-          if (T->ptr[0]->nodeKind != ID && T->ptr[0]->nodeKind != ARRAY_CALL && T->ptr[0]->nodeKind != ARRAY) {
-          semantic_error(T->pos, "", "自增语句需要左值");                                                                             //13. 自增语句需要左值（var/arr/arr[]）
-        } 
+          if (T->ptr[0]->nodeKind != ID && T->ptr[0]->nodeKind != ARRAY_CALL &&
+              T->ptr[0]->nodeKind != ARRAY) {
+            semantic_error(
+                T->pos, "",
+                "自增语句需要左值");  // 13. 自增语句需要左值（var/arr/arr[]）
+          }
           Exp(T->ptr[0]);
           T->type = T->ptr[0]->type;
         } else if (T->ptr[1]) {
           if (T->ptr[1]->nodeKind != ID && T->ptr[1]->nodeKind != ARRAY_CALL) {
-          semantic_error(T->pos, "", "自增语句需要左值");                                                                             //13. 自增语句需要左值（var/arr/arr[]）
-        } 
+            semantic_error(
+                T->pos, "",
+                "自增语句需要左值");  // 13. 自增语句需要左值（var/arr/arr[]）
+          }
           Exp(T->ptr[1]);
           T->type = T->ptr[1]->type;
         }
@@ -858,14 +858,18 @@ void Exp(struct node *T) {
       case SELFDEC:
         if (T->ptr[0]) {
           if (T->ptr[0]->nodeKind != ID && T->ptr[0]->nodeKind != ARRAY_CALL) {
-          semantic_error(T->pos, "", "自减语句需要左值");                                                                             //13. 自减语句需要左值（var/arr/arr[]）
-        } 
+            semantic_error(
+                T->pos, "",
+                "自减语句需要左值");  // 13. 自减语句需要左值（var/arr/arr[]）
+          }
           Exp(T->ptr[0]);
           T->type = T->ptr[0]->type;
         } else if (T->ptr[1]) {
-           if (T->ptr[1]->nodeKind != ID && T->ptr[1]->nodeKind != ARRAY_CALL) {
-          semantic_error(T->pos, "", "自减语句需要左值");                                                                             //13. 自减语句需要左值（var/arr/arr[]）
-        } 
+          if (T->ptr[1]->nodeKind != ID && T->ptr[1]->nodeKind != ARRAY_CALL) {
+            semantic_error(
+                T->pos, "",
+                "自减语句需要左值");  // 13. 自减语句需要左值（var/arr/arr[]）
+          }
           Exp(T->ptr[1]);
           T->type = T->ptr[1]->type;
         }
@@ -922,10 +926,10 @@ void Exp(struct node *T) {
       case FUNC_CALL:  //根据T->type_id查出函数的定义，如果语言中增加了实验教材的read，write需要单独处理一下
         rtn = searchSymbolTable(T->type_id);
         if (rtn == -1) {
-          semantic_error(T->pos, T->type_id, "函数未定义");                                                                           //2.函数未定义
+          semantic_error(T->pos, T->type_id, "函数未定义");  // 2.函数未定义
           break;
         } else if (symbolTable.symbols[rtn].flag != 'F') {
-          semantic_error(T->pos, T->type_id, "不是一个函数");                                                                        //4.调用非函数名
+          semantic_error(T->pos, T->type_id, "不是一个函数");  // 4.调用非函数名
           break;
         }
         T->type = symbolTable.symbols[rtn].type;
@@ -958,7 +962,8 @@ void Exp(struct node *T) {
           semantic_error(T->pos, T->type_id, "数组未定义");
           break;
         } else if (symbolTable.symbols[rtn].flag == 'F') {
-          semantic_error(T->pos, T->type_id, "是函数名，类型不匹配");                                         //5. 不正确使用函数名
+          semantic_error(T->pos, T->type_id,
+                         "是函数名，类型不匹配");  // 5. 不正确使用函数名
           break;
         } else if (symbolTable.symbols[rtn].flag == 'V') {
           semantic_error(T->pos, T->type_id, "不是数组变量名，不匹配");
@@ -969,19 +974,23 @@ void Exp(struct node *T) {
         Exp(T->ptr[0]);  //处理所有实参表达式求值，及类型
         T0 = T->ptr[0];
         if (T0->type != INT) {
-          semantic_error(T->pos, T0->type_id, "数组下标非整型");                                                  //9. 数组下标不是INT
+          semantic_error(T->pos, T0->type_id,
+                         "数组下标非整型");  // 9. 数组下标不是INT
           break;
         }
 
         break;
       case _CONTINUE:
         if (T->break_num != 1) {
-          semantic_error(T->pos, T->type_id, "continue不允许在这个地方出现");                               //19. continue位置非法
+          semantic_error(
+              T->pos, T->type_id,
+              "continue不允许在这个地方出现");  // 19. continue位置非法
         }
         break;
       case _BREAK:
         if (T->break_num != 1) {
-          semantic_error(T->pos, T->type_id, "break不允许在这个地方出现");                                    //19. break位置非法
+          semantic_error(T->pos, T->type_id,
+                         "break不允许在这个地方出现");  // 19. break位置非法
         }
         break;
       case ARGS:  //此处仅处理各实参表达式的求值的代码序列，不生成ARG的实参系列
@@ -1004,7 +1013,11 @@ void boolExp(struct node *T) {
   if (T) {
     switch (T->nodeKind) {
       case INT:
-
+         if (T->type_int != 0)
+          T->code = genGoto(T->Etrue);
+        else
+          T->code = genGoto(T->Efalse);
+        T->width = 0;
         T->type =
             BOOL;  // BOOL表示都可以，只要是int，满足语义，只是0为假，其他为真
         break;
@@ -1019,7 +1032,8 @@ void boolExp(struct node *T) {
         if (rtn == -1) {
           semantic_error(T->pos, T->type_id, "变量未定义");
         } else if (symbolTable.symbols[rtn].flag == 'F') {
-          semantic_error(T->pos, T->type_id, "是函数名，类型不匹配");                                 //5. 不正确使用函数名
+          semantic_error(T->pos, T->type_id,
+                         "是函数名，类型不匹配");  // 5. 不正确使用函数名
         } else if (symbolTable.symbols[rtn].flag == 'A') {
           semantic_error(T->pos, T->type_id, "是数组变量名，类型不匹配");
         } else {
@@ -1038,7 +1052,8 @@ void boolExp(struct node *T) {
         if (rtn == -1)
           semantic_error(T->pos, T->type_id, "数组未定义");
         else if (symbolTable.symbols[rtn].flag == 'F')
-          semantic_error(T->pos, T->type_id, "是函数名，不匹配");                                             //5. 不正确使用函数名
+          semantic_error(T->pos, T->type_id,
+                         "是函数名，不匹配");  // 5. 不正确使用函数名
         else if (symbolTable.symbols[rtn].flag == 'V')
           semantic_error(T->pos, T->type_id, "不是数组变量");
         else {
@@ -1079,10 +1094,11 @@ void semantic_Analysis0(struct node *T) {
   symbolTable.index = 0;
 
   symbolTable.symbols[0].paramnum = 0;  // read的形参个数
-
   symbolTable.symbols[2].paramnum = 1;
+
   symbol_scope_TX.TX[0] = 0;  //外部变量在符号表中的起始序号为0
   symbol_scope_TX.top = 1;
   T->offset = 0;  //外部变量在数据区的偏移量
   semantic_Analysis(T);
+  prnIR(T->code);
 }
