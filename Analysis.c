@@ -274,8 +274,7 @@ void ext_var_list(struct node *T) {
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'A',
                             T->offset);  //最后一个变量名
       if (rtn == -1)
-        semantic_error(T->pos, T->type_id,
-                       "变量名重复定义");  // 3.重复数组变量名称
+        semantic_error(T->pos, T->type_id,"变量名重复定义");  // 3.重复数组变量名称
       else if (T->size <= 0) {
         semantic_error(T->pos, T->type_id, "数组大小不能为负值或0");
       } else {
@@ -460,7 +459,7 @@ void semantic_Analysis(struct node *T) {
           T->code = merge(2, T->code, T->ptr[1]->code);
         }
         // printf("\n出\n");
-       // prn_symbol();
+       //prn_symbol();
         // prnIR(T->code);
         // printf("**出**\n"); */ //c在退出一个复合语句前显示的符号表
         LEV--;  //出复合语句，层号减1
@@ -534,8 +533,7 @@ void semantic_Analysis(struct node *T) {
                                   T0->ptr[0]->type, 'A',
                                   T->offset + T->width);  //最后一个变量名
             if (rtn == -1)
-              semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,
-                             "变量名重复定义");
+              semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,"变量名重复定义");
             else if (T0->ptr[0]->size <= 0) {
               semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,
                              "数组大小不能为负值或0");

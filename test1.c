@@ -1,10 +1,10 @@
 int cjt1,cjt2;
-char cjt3;
+float cjt3;
 int test(int a)
 {
-  int cjt4[25];
-  int a1,a2=1;
-  a1=1;
+  char cjt4[25];
+  int a2=1;
+  int a1=2;
   a1=a1/a2;
   if(a1==1)
   {
@@ -21,10 +21,8 @@ int main()
 {
   int a1,a2=1;
   test(3);
-  while(a2>0)
-  {
+  while(a2>0){
     int i=cjt1;
-    if(cjt1 == 0) continue;
     a1=3;
     break;
   }
