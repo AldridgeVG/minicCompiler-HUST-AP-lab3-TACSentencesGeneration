@@ -189,8 +189,7 @@ void prn_symbol() {
     else
       strcpy(type, "char");
     printf("|%20s\t|%20s\t|%20d\t|%20s\t|%20d\t|\n",
-           symbolTable.symbols[i].name,
-           symbolTable.symbols[i].alias,
+           symbolTable.symbols[i].name, symbolTable.symbols[i].alias,
            symbolTable.symbols[i].level,
            symbolTable.symbols[i].flag == 'A' ? strcats(type, "[]") : type,
            symbolTable.symbols[i].offset);
@@ -266,7 +265,6 @@ void ext_var_list(struct node *T) {
       else {
         T->place = rtn;
         T->num = 1;
-        
       }
       break;
     case ARRAY:
@@ -274,7 +272,8 @@ void ext_var_list(struct node *T) {
       rtn = fillSymbolTable(T->type_id, createAlias(), LEV, T->type, 'A',
                             T->offset);  //最后一个变量名
       if (rtn == -1)
-        semantic_error(T->pos, T->type_id,"变量名重复定义");  // 3.重复数组变量名称
+        semantic_error(T->pos, T->type_id,
+                       "变量名重复定义");  // 3.重复数组变量名称
       else if (T->size <= 0) {
         semantic_error(T->pos, T->type_id, "数组大小不能为负值或0");
       } else {
@@ -459,7 +458,7 @@ void semantic_Analysis(struct node *T) {
           T->code = merge(2, T->code, T->ptr[1]->code);
         }
         // printf("\n出\n");
-       //prn_symbol();
+        // prn_symbol();
         // prnIR(T->code);
         // printf("**出**\n"); */ //c在退出一个复合语句前显示的符号表
         LEV--;  //出复合语句，层号减1
@@ -516,7 +515,7 @@ void semantic_Analysis(struct node *T) {
             else
               T0->ptr[0]->place = rtn;
             T->width += width;
-          } else if (T0->ptr[0]->nodeKind == ARRAY) { 
+          } else if (T0->ptr[0]->nodeKind == ARRAY) {
             rtn = fillSymbolTable(
                 T0->ptr[0]->type_id, createAlias(), LEV, T0->ptr[0]->type, 'A',
                 T->offset + T->width);  //此处偏移量未计算，暂时为0
@@ -526,14 +525,14 @@ void semantic_Analysis(struct node *T) {
             else
               T0->ptr[0]->place = rtn;
 
-
             T->width += width * T0->ptr[0]->size;
 
             rtn = fillSymbolTable(T0->ptr[0]->type_id, createAlias(), LEV,
                                   T0->ptr[0]->type, 'A',
                                   T->offset + T->width);  //最后一个变量名
             if (rtn == -1)
-              semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,"变量名重复定义");
+              semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,
+                             "变量名重复定义");
             else if (T0->ptr[0]->size <= 0) {
               semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id,
                              "数组大小不能为负值或0");
@@ -650,6 +649,8 @@ void semantic_Analysis(struct node *T) {
       case WHILE:
         strcpy(T->ptr[0]->Etrue, createLabel());  //子结点继承属性的计算
         strcpy(T->ptr[0]->Efalse, T->Snext);
+        cNext = T->ptr[0]->Etrue;
+        bNext = T->Snext;
         T->ptr[0]->offset = T->ptr[1]->offset = T->offset;
         boolExp(T->ptr[0]);  //循环条件，要单独按短路代码处理
         T->width = T->ptr[0]->width;
@@ -1214,13 +1215,17 @@ void Exp(struct node *T) {
           semantic_error(
               T->pos, T->type_id,
               "continue不允许在这个地方出现");  // 19. continue位置非法
+          break;
         }
+        T->code = merge(1, genGoto(bNext));
         break;
       case _BREAK:
         if (T->break_num != 1) {
           semantic_error(T->pos, T->type_id,
                          "break不允许在这个地方出现");  // 19. break位置非法
+          break;
         }
+        T->code = merge(1, genGoto(cNext));
         break;
       case ARGS:  //此处仅处理各实参表达式的求值的代码序列，不生成ARG的实参系列
         T->ptr[0]->offset = T->offset;

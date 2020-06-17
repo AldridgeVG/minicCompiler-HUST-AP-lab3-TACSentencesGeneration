@@ -35,6 +35,7 @@ struct node{
     int width;       //占数据字节数
     int return_num;
     int break_num;
+    int canJump;
 };
 
 struct opn{
@@ -80,6 +81,9 @@ struct symbol_scope_begin {
     int TX[30];
     int top;
 } symbol_scope_TX;
+
+char *bNext;
+char* cNext;
 
 struct node *mknode(int kind,struct node *first,struct node *second, struct node *third,int pos );
 char *strcats(char *s1,char *s2);
