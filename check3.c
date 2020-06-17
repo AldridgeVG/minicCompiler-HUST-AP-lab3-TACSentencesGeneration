@@ -1,10 +1,9 @@
 int main(){
     int a,b,c,m;
-    while(a<b){
+    while(a<=b){
         if(a<b) continue;
-        for(c=1;c<10;c++)
-            if(c<5) continue;
-            else break;
+        if(a>b) break;
+        else a=b-1;
     }
     return 1;
 }

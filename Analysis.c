@@ -1217,7 +1217,7 @@ void Exp(struct node *T) {
               "continue不允许在这个地方出现");  // 19. continue位置非法
           break;
         }
-        T->code = merge(1, genGoto(bNext));
+        T->code = merge(1, genGoto(cNext));
         break;
       case _BREAK:
         if (T->break_num != 1) {
@@ -1225,7 +1225,7 @@ void Exp(struct node *T) {
                          "break不允许在这个地方出现");  // 19. break位置非法
           break;
         }
-        T->code = merge(1, genGoto(cNext));
+        T->code = merge(1, genGoto(bNext));
         break;
       case ARGS:  //此处仅处理各实参表达式的求值的代码序列，不生成ARG的实参系列
         T->ptr[0]->offset = T->offset;
