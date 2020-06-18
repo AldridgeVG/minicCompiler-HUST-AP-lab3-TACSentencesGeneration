@@ -845,6 +845,7 @@ void Exp(struct node *T) {
           result.kind = ID;
           strcpy(result.id, symbolTable.symbols[T->ptr[0]->place].alias);
           result.offset = symbolTable.symbols[T->ptr[0]->place].offset;
+          //if (T->code->op == ASSIGNOP) break;
           T->code = merge(2, T->code, genIR(ASSIGNOP, opn1, opn2, result));
         }
         break;
