@@ -437,7 +437,7 @@ void semantic_Analysis(struct node *T) {
         LEV++;
         //设置层号加1，并且保存该层局部变量在符号表中的起始位置在symbol_scope_TX
         /*printf("\n进\n");
-        
+
         //prnIR(T->code);
         printf("**进**\n");*/
         prn_symbol();
@@ -563,7 +563,8 @@ void semantic_Analysis(struct node *T) {
                      symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
               result.kind = ID;
               strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
-              T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code,genIR(ASSIGNOP, opn1, opn2, result));
+              T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code,
+                              genIR(ASSIGNOP, opn1, opn2, result));
             }
             T->width += width + T0->ptr[0]->ptr[1]->width;
           }
@@ -845,7 +846,7 @@ void Exp(struct node *T) {
           result.kind = ID;
           strcpy(result.id, symbolTable.symbols[T->ptr[0]->place].alias);
           result.offset = symbolTable.symbols[T->ptr[0]->place].offset;
-          //if (T->code->op == ASSIGNOP) break;
+          // if (T->code->op == ASSIGNOP) break;
           T->code = merge(2, T->code, genIR(ASSIGNOP, opn1, opn2, result));
         }
         break;
@@ -1202,8 +1203,8 @@ void Exp(struct node *T) {
         }
         T->type = symbolTable.symbols[rtn].type;
         width = T->type == INT ? 4 : 8;  //存放函数返回值的单数字节数
-
-        T->ptr[0]->offset = T->offset;
+        if (T->type == CHAR) width = 1;         
+        T->ptr[0]->offset = T->offset = symbolTable.symbols[rtn].offset + T->type_int*width;
         Exp(T->ptr[0]);  //处理所有实参表达式求值，及类型
         T0 = T->ptr[0];
         if (T0->type != INT) {
