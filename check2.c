@@ -1,10 +1,12 @@
-int fac(int a){
-    if(a==1) return 1;
-    return a*fac(a-1);
-}
-int main(){
-    int x;
-    x=read();
-    write(fac(x));
+int main()
+{
+    int a,b,c,m;
+    while (a<b)
+        {
+         if (a<b) continue;
+         while(c<10)
+               if (c<5) continue;
+               else break;      
+         }
     return 1;
 }

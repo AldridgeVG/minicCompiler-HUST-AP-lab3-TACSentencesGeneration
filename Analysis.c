@@ -437,9 +437,10 @@ void semantic_Analysis(struct node *T) {
         LEV++;
         //设置层号加1，并且保存该层局部变量在符号表中的起始位置在symbol_scope_TX
         /*printf("\n进\n");
-        prn_symbol();
+        
         //prnIR(T->code);
         printf("**进**\n");*/
+        prn_symbol();
         symbol_scope_TX.TX[symbol_scope_TX.top++] = symbolTable.index;
         T->width = 0;
         T->code = NULL;
