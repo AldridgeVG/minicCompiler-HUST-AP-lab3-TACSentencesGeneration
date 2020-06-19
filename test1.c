@@ -21,9 +21,9 @@ int main()
 {
   int a1,a2=1;
   test(3);
+  test(a2);
   while(a2>0){
-    int i=cjt1;
-    a1=3;
+    if(a1==3) continue;
     break;
   }
   return 1;

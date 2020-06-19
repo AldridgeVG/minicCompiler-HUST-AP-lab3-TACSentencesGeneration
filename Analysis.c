@@ -562,8 +562,7 @@ void semantic_Analysis(struct node *T) {
                      symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
               result.kind = ID;
               strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
-              T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code,
-                              genIR(ASSIGNOP, opn1, opn2, result));
+              T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code,genIR(ASSIGNOP, opn1, opn2, result));
             }
             T->width += width + T0->ptr[0]->ptr[1]->width;
           }
